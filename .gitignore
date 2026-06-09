@@ -1,0 +1,22 @@
+# --------------------------------------------#
+# IntelliJ IDEA (File and folders of the IDE) #
+#---------------------------------------------#
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+gen/
+
+# ------------------------------------------#
+# Java and compilers (auto generated files) #
+# ------------------------------------------#
+*.class
+*.log
+*.cjs
+
+# ---------------#
+# Storage folder #
+# ---------------#
+STORAGE/*
+!STORAGE/.gitkeep
