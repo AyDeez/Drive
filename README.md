@@ -48,3 +48,79 @@ This design avoids loading entire files into memory and improves scalability for
     - payload data
 - String fields use `\0` as internal delimiter
 - File transfers are handled outside standard message payloads for performance
+
+---
+
+## Core Classes Overview:
+### Protocol
+The `Protocol` class defines all command and response identifiers used by both client and server.
+
+It includes:
+
+- Client → Server commands:
+    - LOGIN, LOGOUT, UPLOAD, DOWNLOAD, LIST, DELETE, MKDIR
+- Server → Client responses:
+    - RES_OK, RES_ERROR, RES_DATA, RES_AUTH_OK, RES_AUTH_FAIL
+- System limits:
+    - Maximum payload size: 10 MB
+    - I/O buffer size: 8 KB
+
+This class is immutable and only contains constants.
+
+---
+
+### MessageWriter
+The `MessageWriter` class is responsible for sending messages over an `OutputStream`.
+
+It provides a high-level API for:
+
+- Sending commands without payload
+- Sending binary payloads
+- Sending UTF-8 string payloads
+- Sending shortcut responses (`ok()` and `error()`)
+
+Each message is serialized as:
+
+CMD (1 byte) + LENGTH (4 bytes) + PAYLOAD
+
+The writer ensures messages are flushed immediately after being sent.
+
+---
+
+### MessageReader
+The `MessageReader` class handles incoming messages from an `InputStream`.
+
+It performs the following steps:
+
+1. Reads 1 byte → command identifier
+2. Reads 4 bytes → payload length
+3. Validates payload size against protocol limits
+4. Reads payload bytes safely
+
+It returns a `Message` object representing the decoded packet.
+
+---
+
+### Message
+The `Message` class represents a received packet.
+
+It contains:
+
+- `cmd` → command or response type
+- `payload` → raw byte data
+
+Utility methods:
+
+- `payloadAsString()` → converts payload to UTF-8 string
+- `payloadAsParts()` → splits payload using `\0`
+- `hasPayload()` → checks if payload is not empty
+
+---
+
+## Communication Flow:
+1. Client creates a message using `MessageWriter`
+2. Message is sent over TCP socket
+3. Server reads message using `MessageReader`
+4. Server interprets command using `Protocol`
+5. Server processes request
+6. Server responds using `MessageWriter`
